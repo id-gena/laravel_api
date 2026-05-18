@@ -1,21 +1,26 @@
 <?php
 
-namespace Tests\Feature\Api\V1;
+namespace Tests\Feature\Api\V2;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use App\Models\Task;
+use App\Models\User;
 
 class TaskTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_guest_can_get_list_of_tasks(): void
+    public function test_user_can_get_list_of_tasks(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
         // Arrange
-        $tasks = Task::factory()->count(2)->create();
+        $tasks = Task::factory()->count(2)->create([
+            'user_id' => $user->id
+        ]);
         // Act: make a GET request to the endpoint
-        $response = $this->getJson('/api/v1/tasks');
+        $response = $this->getJson('/api/v2/tasks');
         // Assert: status is OK and data has 2 items
         $response->assertOk();
         $response->assertJsonCount(2, 'data');
@@ -26,13 +31,17 @@ class TaskTest extends TestCase
         ]);
     }
 
-    // Check if guest can get a single task
-    public function test_guest_can_get_single_task(): void
+    // Check if user can get a single task
+    public function test_user_can_get_single_task(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
         // Arrange: create a task
-        $task = Task::factory()->create();
+        $task = Task::factory()->create([
+            'user_id' => $user->id
+        ]);
         // Act: make a GET request to the endpoint with task ID
-        $response = $this->getJson('/api/v1/tasks/' . $task->id);
+        $response = $this->getJson('/api/v2/tasks/' . $task->id);
         // Assert: response contains the correct data.
         $response->assertOk();
         $response->assertJsonStructure([
@@ -48,27 +57,29 @@ class TaskTest extends TestCase
     }
 
     // POST tasks - create a new task
-    public function test_guest_can_create_a_task(): void
+    public function test_user_can_create_a_task(): void
     {
-        $response = $this->postJson('/api/v1/tasks', [
-            'name' => 'New task',
-            
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $response = $this->postJson('/api/v2/tasks', [
+            'name' => 'New task'
         ]);
+
         $response->assertCreated();
         $response->assertJsonStructure([
-            'data' => [
-                'id', 'name', 'is_completed'
-            ],
+            'data' => ['id', 'name', 'is_completed']
         ]);
         $this->assertDatabaseHas('tasks', [
-            'name' => 'New task',
+            'name' => 'New task'
         ]);
     }
 
-    // Ensure guest cannot create invalid task
-    public function test_guest_cannot_create_invalid_task(): void
+    // Ensure user cannot create invalid task
+    public function test_user_cannot_create_invalid_task(): void
     {
-        $response = $this->postJson('/api/v1/tasks', [
+        $user = User::factory()->create();
+        $this->actingAs($user);
+        $response = $this->postJson('/api/v2/tasks', [
             'name' => '',
         ]);
         $response->assertStatus(422);
@@ -76,11 +87,13 @@ class TaskTest extends TestCase
     }
 
     // Update existing task
-    public function test_guest_can_update_task(): void
+    public function test_user_can_update_task(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
         $task = Task::factory()->create();
 
-        $response = $this->putJson('/api/v1/tasks/' . $task->id, [
+        $response = $this->putJson('/api/v2/tasks/' . $task->id, [
             'name' => 'Updated task name'
         ]);
 
@@ -90,12 +103,14 @@ class TaskTest extends TestCase
         ]);
     }
 
-    // Guest cannot update task with invalid data
-    public function test_guest_cannot_update_task_with_invalid_data(): void
+    // User cannot update task with invalid data
+    public function test_user_cannot_update_task_with_invalid_data(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
         $task = Task::factory()->create();
 
-        $response = $this->putJson('/api/v1/tasks/' . $task->id, [
+        $response = $this->putJson('/api/v2/tasks/' . $task->id, [
             'name' => ''
         ]);
 
@@ -103,14 +118,16 @@ class TaskTest extends TestCase
         $response->assertJsonValidationErrors(['name']);
     }
 
-    // Guest can switch the task as completed or incompleted
-    public function test_guest_can_toggle_task_completion(): void
+    // User can switch the task as completed or incompleted
+    public function test_user_can_toggle_task_completion(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
         $task = Task::factory()->create([
             'is_completed' => false
         ]);
 
-        $response = $this->patchJson('/api/v1/tasks/' . $task->id . '/complete', [
+        $response = $this->patchJson('/api/v2/tasks/' . $task->id . '/complete', [
             'is_completed' => true
         ]);
 
@@ -120,12 +137,14 @@ class TaskTest extends TestCase
         ]);
     }
 
-    // Guest cannot toggle is_completed status with invalid data
-    public function test_guest_cannot_toggle_completed_with_invalid_data(): void
+    // User cannot toggle is_completed status with invalid data
+    public function test_user_cannot_toggle_completed_with_invalid_data(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
         $task = Task::factory()->create();
 
-        $response = $this->patchJson('/api/v1/tasks/' . $task->id . '/complete', [
+        $response = $this->patchJson('/api/v2/tasks/' . $task->id . '/complete', [
             'is_completed' => 'yes'
         ]);
 
@@ -133,12 +152,14 @@ class TaskTest extends TestCase
         $response->assertJsonValidationErrors(['is_completed']);
     }
 
-    // Guest can delete a task
-    public function test_guest_can_delete_task(): void
+    // User can delete a task
+    public function test_user_can_delete_task(): void
     {
+        $user = User::factory()->create();
+        $this->actingAs($user);
         $task = Task::factory()->create();
 
-        $response = $this->deleteJson('/api/v1/tasks/' . $task->id);
+        $response = $this->deleteJson('/api/v2/tasks/' . $task->id);
 
         $response->assertNoContent();
         $this->assertDatabaseMissing('tasks', [
