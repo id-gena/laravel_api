@@ -14,6 +14,9 @@ class CompleteTaskController extends Controller
      */
     public function __invoke(CompleteTaskRequest $request, Task $task)
     {
+        if ($request->user()->cannot('update', $task)) {
+            abort(403);
+        }
         $task->is_completed = $request->is_completed;
         $task->save();
 

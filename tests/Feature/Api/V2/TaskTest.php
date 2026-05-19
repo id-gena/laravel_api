@@ -87,6 +87,7 @@ class TaskTest extends TestCase
     }
 
     // Update existing task
+    // @todo Resolve the issue when the test is not passed after Auth implementation
     public function test_user_can_update_task(): void
     {
         $user = User::factory()->create();
@@ -119,6 +120,7 @@ class TaskTest extends TestCase
     }
 
     // User can switch the task as completed or incompleted
+    // @todo Resolve the issue when the test is not passed after Auth implementation
     public function test_user_can_toggle_task_completion(): void
     {
         $user = User::factory()->create();
@@ -153,6 +155,7 @@ class TaskTest extends TestCase
     }
 
     // User can delete a task
+    // @todo Resolve the issue when the test is not passed after Auth implementation
     public function test_user_can_delete_task(): void
     {
         $user = User::factory()->create();
