@@ -15,7 +15,7 @@ class RegisterController extends Controller
      */
     public function __invoke(RegisterRequest $request)
     {
-        $user = User::create($request->only('name', 'emmail') + [
+        $user = User::create($request->only('name', 'email') + [
             'password' => Hash::make($request->password)
         ]);
 
