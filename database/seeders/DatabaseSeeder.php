@@ -16,6 +16,7 @@ class DatabaseSeeder extends Seeder
         $period = CarbonPeriod::create($start, '1 day', $end);
 
         User::factory(5)
+            ->withRandomPriority()
             ->create()
             ->each(function ($user) use($period) {
                 foreach ($period as $date) {

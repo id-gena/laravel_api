@@ -22,6 +22,8 @@ class TaskController extends Controller
         return request()
             ->user()
             ->tasks()
+            ->handleSort(request()->query('sort_by') ?? 'time')
+            ->with('priority')
             ->get()
             ->toResourceCollection();
     }
@@ -37,6 +39,7 @@ class TaskController extends Controller
             abort(403);
         }
         $task = $request->user()->tasks()->create($request->validated());
+        $task->load('priority');
 
         return $task->toResource();
     }
@@ -49,6 +52,7 @@ class TaskController extends Controller
         if ($request->user()->cannot('view', $task)) {
             abort(403);
         }
+        $task->load('priority');
         return $task->toResource();
     }
 
@@ -62,6 +66,7 @@ class TaskController extends Controller
         }
         
         $task->update($request->validated());
+        $task->load('priority');
     
         return $task->toResource();
     }
