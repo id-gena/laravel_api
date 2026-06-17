@@ -11,23 +11,8 @@ class DatabaseSeeder extends Seeder
 {
     public function run(): void
     {
-        $start = now()->startOfMonth()->subMonthsNoOverflow();
-        $end = now();
-        $period = CarbonPeriod::create($start, '1 day', $end);
-
         User::factory(5)
-            ->withRandomPriority()
-            ->create()
-            ->each(function ($user) use($period) {
-                foreach ($period as $date) {
-                    $date->hour(rand(0, 23))->minute(rand(0, 6) * 10);
-
-                    Task::factory()->create([
-                        'user_id' => $user->id,
-                        'created_at' => $date,
-                        'updated_at' => $date
-                    ]);
-                }
-            });
+            ->has(Task::factory()->count(10)->withRandomPriority())
+            ->create();
     }
 }
