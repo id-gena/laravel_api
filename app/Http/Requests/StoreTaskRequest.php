@@ -4,8 +4,6 @@ namespace App\Http\Requests;
 
 use Illuminate\Contracts\Validation\ValidationRule;
 use Illuminate\Foundation\Http\FormRequest;
-use App\Models\Priority;
-use Illuminate\Validation\Rule;
 
 class StoreTaskRequest extends FormRequest
 {
@@ -25,8 +23,10 @@ class StoreTaskRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'name' => ['required', 'string', 'max:255'],
-            'priority_id' => ['nullable', Rule::exists(Priority::class, 'id')],
+            'name' => ['required'],
+            'is_completed' => ['boolean'],
+            'priority_id' => ['nullable', 'exists:priorities,id'],
+            'due_date' => ['nullable', 'date'],
         ];
     }
 }

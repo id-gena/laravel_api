@@ -13,16 +13,12 @@ class TaskController extends Controller
     /**
      * Display a listing of the resource.
      */
-    public function index(Request $request)
+    public function index()
     {
-        if ($request->user()->cannot('viewAny', Task::class)) {
-            abort(403);
-        }
-
-        return request()
-            ->user()
+        return request()->user()
             ->tasks()
             ->handleSort(request()->query('sort_by') ?? 'time')
+            ->handleFilter(request()->query('due_date'))
             ->with('priority')
             ->get()
             ->toResourceCollection();
