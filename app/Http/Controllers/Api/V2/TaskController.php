@@ -7,9 +7,15 @@ use App\Http\Requests\StoreTaskRequest;
 use App\Http\Requests\UpdateTaskRequest;
 use App\Models\Task;
 use Illuminate\Http\Request;
+use App\Services\TaskInputParser;
 
 class TaskController extends Controller
 {
+    /**
+     * @param TaskInputParser $parser
+     */
+    public function __construct(protected TaskInputParser $parser) {}
+
     /**
      * Display a listing of the resource.
      */
@@ -31,10 +37,12 @@ class TaskController extends Controller
      */
     public function store(StoreTaskRequest $request)
     {
-        if ($request->user()->cannot('create', Task::class)) {
-            abort(403);
-        }
-        $task = $request->user()->tasks()->create($request->validated());
+
+        $data = $request->validated();
+        $task = $request->user()->tasks()->create(
+            $this->prepareData($data)
+        );
+
         $task->load('priority');
 
         return $task->toResource();
@@ -60,10 +68,12 @@ class TaskController extends Controller
         if ($request->user()->cannot('update', $task)) {
             abort(403);
         }
-        
-        $task->update($request->validated());
+
+        $task->update(
+            $this->prepareData($request->validated())
+        );
         $task->load('priority');
-    
+
         return $task->toResource();
     }
 
@@ -79,4 +89,22 @@ class TaskController extends Controller
 
         return response()->noContent();
     }
+
+    /**
+     * Parses data from task and prepare it for being processed by task create/update operations.
+     *
+     * @param array $data
+     * @return array
+     */
+    private function prepareData(array $data): array
+    {
+        $parsed = $this->parser->parse($data['name']);
+        if ($parsed) {
+            $data['name'] = $parsed['name'];
+            $data['priority_id'] = $data['priority_id'] ?? ($parsed['priority_id'] ?? null);
+            $data['due_date'] = $data['due_date'] ?? ($parsed['due_date'] ?? null);
+        }
+        return $data;
+    }
+
 }
